@@ -111,6 +111,33 @@ let array2:[Int] = [1,2,3,4,5];
 // Cannot assign through subscript: 'array2' is a 'let' constant
 // array2[2] = 3;
 
+//: ### Enums
+//:
+//: In Swift, enums can have associative values. Thus, it is possible to store some additional information inside each instance of the enumerated values, as demonstrated below.
+
+// represents barcodes as they are printed on products for scanning purposes
+enum BarCode {
+    // consists of 4 int numbers: number system, manufacturer code, product code, check digit
+    case upc(Int, Int, Int, Int);
+    // QR code can hold a String with up to 2953 characters
+    case qrCode(String);
+}
+
+let productCodes:[BarCode] = [
+    .upc(8,8,8,8),
+    .qrCode("Wer das liest ist doof."),
+    .upc(1,2,3,4)
+];
+
+for productCode in productCodes {
+    switch productCode {
+    case .upc(let numberSystem, let manufacturer, let product, let checknumber):
+        print("Found a UPC code: \(numberSystem)-\(manufacturer)-\(product)-\(checknumber).");
+    case .qrCode(let content):
+        print("Found qr code: \(content).");
+    }
+}
+
 //: ## Functions
 //:
 //: In Swift, functions are a special case of closures.
@@ -222,6 +249,90 @@ do{
 
 func canThrowErrors() throws -> String {
     return "Hello, World!";
+}
+
+enum VendingMachineError: Error {
+    case invalidSelection(selection: String);
+    case insufficientFunds(coinsNeeded: Int);
+    case outOfStock;
+}
+
+struct Item {
+    var name: String;
+    var price: Int;
+    var count: Int;
+}
+
+class VendingMachine {
+    var inventory = [
+        "Candy Bar": Item(name:"Candy Bar", price: 12, count: 7),
+        "Chips": Item(name:"Chips", price: 10, count: 4),
+        "Pretzels": Item(name:"Pretzels", price: 7, count: 11)
+    ];
+    
+    var coinsDeposited = 0;
+    
+    func vend(item name: String) throws {
+        guard let item = inventory[name] else {
+            throw VendingMachineError.invalidSelection(selection:name);
+        }
+        guard item.count > 0 else {
+            throw VendingMachineError.outOfStock;
+        }
+        guard item.price <= coinsDeposited else {
+            throw VendingMachineError.insufficientFunds(coinsNeeded: item.price - coinsDeposited);
+        }
+        
+        coinsDeposited -= item.price;
+        var newItem = item;
+        newItem.count -= 1;
+        inventory[name] = newItem;
+        print("Dispensing \(name)");
+    }
+}
+
+let favoriteSnacks = [
+    "Alice": "Chips",
+    "Bob": "Licorice",
+    "Eve": "Pretzels"
+]
+func buyFavoriteSnack(person: String, vendingMachine: VendingMachine) throws {
+    let snackName:String = favoriteSnacks[person] ?? "Candy Bar";
+    try vendingMachine.vend(item: snackName);
+}
+let vendingMachine:VendingMachine = VendingMachine();
+do{
+    try buyFavoriteSnack(person:"Bob", vendingMachine:vendingMachine);
+} catch {
+    print("Could not buy favoriteSnack Licorice for person Bob because: \(error).");
+}
+do{
+    try buyFavoriteSnack(person:"Alice", vendingMachine:vendingMachine);
+} catch {
+    print("Could not buy favoriteSnack Chips for person Alice because: \(error).");
+}
+vendingMachine.coinsDeposited = 20;
+do{
+    try buyFavoriteSnack(person:"Alice", vendingMachine:vendingMachine);
+} catch {
+    print("Could not buy favoriteSnack Chips for person Alice because: \(error).");
+}
+print("Status vending machine: \(vendingMachine.inventory); credit: \(vendingMachine.coinsDeposited).");
+try? vendingMachine.vend(item: "Candy Bar");
+vendingMachine.coinsDeposited = 20;
+try? vendingMachine.vend(item: "Candy Bar");
+vendingMachine.coinsDeposited = 12;
+do {
+    try buyFavoriteSnack(person:"Eve", vendingMachine:vendingMachine);
+    print("It worked! Yummy!");
+} catch VendingMachineError.invalidSelection(let selection) {
+    print("Invalid selection: \(selection).");
+} catch VendingMachineError.outOfStock {
+    print("Alas out of stock.");
+} catch VendingMachineError.insufficientFunds(let coinsNeeded) {
+    print("Insufficient funds. Please insert \(coinsNeeded) additional credit.");
+} catch {
+    print("Unexpected error: \(error).");
 }
 
 //: ## Strings
