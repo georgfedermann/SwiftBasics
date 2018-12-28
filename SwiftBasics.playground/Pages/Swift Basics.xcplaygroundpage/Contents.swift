@@ -3,7 +3,36 @@ import AVFoundation;
 
 //: # My Big Swift Notebook
 //:
-//: ## Comments
+//: ## Whitespace
+//:
+//: Whitespace are all the characters that will be ignored during lexing by the Swift compiler. Whitespace is any of the following:
+//: - All the characters that are not displayed as characters like blanks, tabs, newlines, linebreaks, etc.
+//: - All comments
+//:   - Single line comments // ...
+//:   - Multiple line comments /\* ... \*/
+//: TODO: this explanation could be improved by pointing out that whitespace will not be turned into a token provided to the parser. The only whitespace that will reach the parser is any whitespace contained in String literals.
+//:
+//: ### Consistent whitespace on both sides
+//:
+//: Swift likes balance of whitespace around its operators, as demonstrated in the statements below.
+
+var monsterHealth=19;
+var heroHealth = 51;
+
+//: The following statements would be invalid and throw an error:
+//:
+//: error: Swift Basics.xcplaygroundpage:37:20: error: '=' must have consistent whitespace on both sides
+//:
+//: Try it out by removing the comments.
+
+// var unlimitedPower =100;
+// var fuelLevel= 800;
+//: In case you wonder what is the reasoning behind that balancing, the statement below and its error message might point you in the direction. In *+2*, the + is the unary sign operator, not the adding operator. In Swift, operators can be overloaded, which is also true for the assignment operator =. Thus, the Swift lexer can never be sure what monsterHealth =19 would mean in any given situation. Such problems might be mitigated by balancing whitespace around operators.
+//:
+//: error: consecutive statements on a line must be separated by ';'
+// monsterHealth = monsterHealth +2;
+
+//: ### Comments
 //:
 //: The reasoning for comments is to comment to the later self or collaborators the train of thoughts behind a piece of code.
 //:
@@ -81,28 +110,6 @@ let array2:[Int] = [1,2,3,4,5];
 // array2 += [6];
 // Cannot assign through subscript: 'array2' is a 'let' constant
 // array2[2] = 3;
-
-//: ## Whitespace
-//:
-//: ### Consistent whitespace on both sides
-//:
-//: Swift likes balance of whitespace around its operators, as demonstrated in the statements below.
-
-var monsterHealth=19;
-var heroHealth = 51;
-
-//: The following statements would be invalid and throw an error:
-//:
-//: error: Swift Basics.xcplaygroundpage:37:20: error: '=' must have consistent whitespace on both sides
-//:
-//: Try it out by removing the comments.
-
-// var unlimitedPower =100;
-// var fuelLevel= 800;
-//: In case you wonder what is the reasoning behind that balancing, the statement below and its error message might point you in the direction. In *+2*, the + is the unary sign operator, not the adding operator. In Swift, operators can be overloaded, which is also true for the assignment operator =. Thus, the Swift lexer can never be sure what monsterHealth =19 would mean in any given situation. Such problems might be mitigated by balancing whitespace around operators.
-//:
-//: error: consecutive statements on a line must be separated by ';'
-// monsterHealth = monsterHealth +2;
 
 //: ## Functions
 //:
@@ -194,9 +201,28 @@ for x in 0...20 where x % 2 == 0{
 
 //: ## Exception Handling
 //:
+//: When a function throws an error, it changes the flow of your program.
+//: These are the 4 ways of dealing with errors in Swift:
+//: - Propagate the error from a function to the client (i.e. the code that calls the function)
+//: - handle the error using a do-catch statement
+//: - handle the error as an optional value
+//: - assert (to the compiler) that the error will not occur, if you are damn sure of what you're doing
 //: Code that could throw an exception has to be wrapped in a do-try-catch construct. Or else we get the compiler error: **Call can throw, but it is not marked with 'try' and the error is not handled.** As in:
 var audioPlayer = AVAudioPlayer();
-audioPlayer = AVAudioPlayer(contentsOf:);
+do{
+    audioPlayer = try AVAudioPlayer(contentsOf: URL(string: "http://some.invalid.url.com")!);
+    audioPlayer.play();
+    print("played ding audio just for you.");
+} catch {
+    print("Guess what, something went wrong: \(error).");
+}
+//: The AVAudioPlayer initializer will throw an error, because the URL cannot be resolved to a resource on the local file system. Printing the error shows this message: **Guess what, something went wrong: Error Domain=NSOSStatusErrorDomain Code=2003334207 "(null)".**. The meaning of this freaking error message can be looked up here: https://www.osstatus.com.
+//:
+//: If a function can throw errors, it is called a **throwing function**. Such a function declaration looks like this:
+
+func canThrowErrors() throws -> String {
+    return "Hello, World!";
+}
 
 //: ## Strings
 //: ### String formatting
